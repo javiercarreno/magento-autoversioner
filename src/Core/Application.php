@@ -3,13 +3,30 @@
 namespace Autoversioner\Core;
 
 use Autoversioner\Config\Config;
+use Autoversioner\Config\Credentials;
+use Autoversioner\Config\YamlParser;
+use Autoversioner\Helpers\ErrorHandler;
+use Autoversioner\Helpers\GitHubHelper;
+use Autoversioner\Helpers\GitHubRepository;
+use Autoversioner\Helpers\JiraHelper;
+use \Github\Client;
+use PhpCsFixer\Error\Error;
 
 class Application
 {
     /**
-     * @var string
+     * @var Credentials
      */
-    private $gitHubRepository;
+    private $credentials;
+    /**
+     * @var Client
+     */
+    private $client;
+
+    /**
+     * @var GitHubHelper
+     */
+    private $gitHubHelper;
     /**
      * @var Config
      */
@@ -20,12 +37,78 @@ class Application
      */
     public function __construct($gitHubRepository)
     {
-        $this->config = new Config();
-        $this->gitHubRepository = $gitHubRepository;
+        $this->config = new Config(new YamlParser('config.yml'));
+        $credentials = new Credentials(new YamlParser('credentials.yml'));
+        $this->gitHubHelper = new GitHubHelper(
+            new GitHubRepository($gitHubRepository),
+            $credentials->getGitHubCredentials()
+        );
+        $this->jiraHelper = new JiraHelper(
+            $credentials->getJiraCredentials(),
+            $this->config->getExpressions()
+            );
     }
 
+    /**
+     *
+     */
     public function Run()
     {
+        try {
+            $this->doVersionCalculation();
+        } catch (\Exception $ex) {
+            ErrorHandler::HandleError(new \Exception("Fatal error resolving version. Possible messy github repository (no tags, no pull requests...)."));
+        }
+    }
 
+    /**
+     * @return array
+     */
+    private function getPullRequestsByLastTag($lastTag)
+    {
+        if ($lastTag) {
+            $dateLastTag = '';
+            if ($lastTag['object']['type']=='commit') {
+                $tagCommit = $this->gitHubHelper->getCommit($lastTag['object']['sha']);
+                $dateLastTag = $tagCommit['commit']['author']['date'];
+            } elseif ($lastTag['object']['type']=='tag') {
+                $tag = $this->gitHubHelper->getTag($lastTag['object']['sha']);
+                $dateLastTag = $tag['tagger']['date'];
+            }
+            $pullRequests = $this->gitHubHelper->getPullRequests($dateLastTag, $lastTag['object']['sha']);
+        } else {
+            $pullRequests = $this->gitHubHelper->getPullRequests('', '');
+        }
+        return $pullRequests;
+    }
+
+    private function doVersionCalculation()
+    {
+        echo 'Fetching last tag... ' . "\n";
+        $lastTag = $this->gitHubHelper->getLastTag();
+        if ($lastTag!="") {
+            echo sprintf('Last tag found: %s', $lastTag['version']) . "\n";
+        } else {
+            echo "Not tag found\n";
+        }
+
+        $pullRequests = $this->getPullRequestsByLastTag($lastTag);
+
+        if (count($pullRequests) > 0) {
+            $versionCalculator = new VersionCalculator(
+                $this->config->getExpressions(),
+                $this->config->getDefaultChange(),
+                $this->jiraHelper,
+                $pullRequests,
+                $lastTag!="" ? $lastTag['version'] : ""
+            );
+            $versionCalculator->calculate();
+        } else {
+            echo 'No merged pull requests found since last version (tag).'."\n";
+        }
+
+        if (!$lastTag&&count($pullRequests)==0) {
+            ErrorHandler::HandleError(new \Exception('Seems to be a new repository.'));
+        }
     }
 }

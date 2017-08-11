@@ -4,42 +4,28 @@ require __DIR__.'/vendor/autoload.php';
 use Autoversioner\Core\Application;
 
 $gitRepo = "";
-if (isset($argv[2]))
-{
-    if(strpos($argv[2],'-')!=0)
-    {
+if (isset($argv[2])) {
+    if (strpos($argv[2], '-')!=0) {
         die('argument not valid. Please specify -l or -r');
     }
-    if($argv[2]=='-r')
-    {
-        if(isset($argv[3]))
-        {
+    if ($argv[2]=='-r') {
+        if (isset($argv[3])) {
             $gitRepo = $argv[3];
-            if (!gitRepositoryExists($gitRepo))
-            {
+            if (!gitRepositoryExists($gitRepo)) {
                 die('Repository does not exists');
             }
-        }
-        else
-        {
+        } else {
             die('-r option must specify a git remote repository');
         }
-    }
-    else if ($argv[2]=='-l')
-    {
-        if(isset($argv[3]))
-        {
-            $gitRepo = getGitRepositoryFromFolder($_SERVER['PWD'],$argv[3]);
-        }
-        else
-        {
+    } elseif ($argv[2]=='-l') {
+        if (isset($argv[3])) {
+            $gitRepo = getGitRepositoryFromFolder($_SERVER['PWD'], $argv[3]);
+        } else {
             die('-l option must specify a valid local git remote configuration');
         }
     }
-}
-else
-{
-    $gitRepo = getGitRepositoryFromFolder($_SERVER['PWD'],'');
+} else {
+    $gitRepo = getGitRepositoryFromFolder($_SERVER['PWD'], '');
 }
 $app = new Application($gitRepo);
 $app->Run();
@@ -58,32 +44,25 @@ function isFolder($path)
  *
  * @return string
  */
-function getGitRepositoryFromFolder($url,$argumentRemote)
+function getGitRepositoryFromFolder($url, $argumentRemote)
 {
-    $remotes = shell_exec("cd . && git remote ");
-    if ($remotes)
-    {
-        if (strpos($remotes,"\n",0)>0)
-        {
-            $remotes = explode("\n",$remotes);
-        }
-        else
-        {
+    $remotes = shell_exec("cd $url && git remote ");
+    if ($remotes) {
+        if (strpos($remotes, "\n", 0)>0) {
+            $remotes = explode("\n", $remotes);
+            array_pop($remotes);
+        } else {
             $argumentRemote = $remotes;
             $remotes = [$remotes];
         }
-        if(count($remotes)>1 && $argumentRemote=="")
-        {
+        if (count($remotes)>1 && $argumentRemote=="") {
             die('More than one remote found in folder. Please specify what remote to use with -l option');
         }
-        foreach($remotes as $repo)
-        {
-            if($repo == $argumentRemote)
-            {
-                $gitRemote = shell_exec(sprintf('git remote get-url %s',$argumentRemote));
+        foreach ($remotes as $repo) {
+            if ($repo == $argumentRemote) {
+                $gitRemote = shell_exec(sprintf('git remote get-url %s', $argumentRemote));
             }
         }
-
     }
 }
 
@@ -94,6 +73,9 @@ function getGitRepositoryFromFolder($url,$argumentRemote)
  */
 function gitRepositoryExists($url)
 {
-    $response = shell_exec(sprintf('git ls-remote %s',$url));
-    return strpos($response,'ERROR')===FALSE;
+    $response = shell_exec(sprintf('git ls-remote %s', $url));
+    if (!$response) {
+        return false;
+    }
+    return strpos($response, 'ERROR')===false;
 }

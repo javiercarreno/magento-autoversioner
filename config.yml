@@ -1,0 +1,14 @@
+config:
+  default_change: "patch"
+
+expressions:
+  jira:
+    - "/PD[- ][0-9]{1,9}/"
+
+  minor:
+    - "/^INTERNAL[: -]/"
+
+  patch:
+    - "/^FIX[: -]/"
+    - "/^WIP/"
+    - "asdasd"
