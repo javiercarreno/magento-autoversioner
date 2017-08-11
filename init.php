@@ -3,6 +3,7 @@ require __DIR__.'/vendor/autoload.php';
 
 use Autoversioner\Core\Application;
 
+system('clear');
 $gitRepo = "";
 if (isset($argv[2])) {
     if (strpos($argv[2], '-')!=0) {

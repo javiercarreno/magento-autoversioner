@@ -92,7 +92,7 @@ class Application
         echo 'Fetching last tag... ' . "\n";
         $lastTag = $this->gitHubHelper->getLastTag();
         if ($lastTag!="") {
-            echo sprintf('Last tag found: %s', $lastTag['version']) . "\n";
+            echo sprintf("Last tag found: \e[1m %s \e[0m", $lastTag['version']) . "\n";
         } else {
             echo "Not tag found\n";
         }

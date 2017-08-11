@@ -164,12 +164,21 @@ class GitHubHelper
         $dataTags = [];
         foreach ($semanticTagsVersions as $version) {
             $tagRef = $tags[$version];
-            $tag = $dataApi->tags()->show(
-                $this->userName,
-                $this->repository,
-                $tagRef['object']['sha']
-            );
-            $dataTags[] = ['version'=>$version,"date"=>$tag['tagger']['date']];
+            if ($tagRef['object']['type']=='tag') {
+                $tag = $dataApi->tags()->show(
+                    $this->userName,
+                    $this->repository,
+                    $tagRef['object']['sha']
+                );
+                $dataTags[] = ['version'=>$version,"date"=>$tag['tagger']['date']];
+            } elseif ($tagRef['object']['type']=='commit') {
+                $tag = $dataApi->commits()->show(
+                    $this->userName,
+                    $this->repository,
+                    $tagRef['object']['sha']
+                );
+                $dataTags[] = ['version'=>$version,"date"=>$tag['committer']['date']];
+            }
         }
         usort($dataTags, function ($a1, $a2) {
             $v1 = strtotime($a1['date']);

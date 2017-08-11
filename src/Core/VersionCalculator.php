@@ -100,7 +100,7 @@ class VersionCalculator
         if ($minorChanges==0&&$patches==0&&count($this->pullRequests)>0) {
             ErrorHandler::HandleError(new \Exception("Cannot resolve any pull request. (No minor, no patches)."));
         } else {
-            echo "Recount: $minorChanges minor changes and $patches patches.";
+            echo "\n\nRecount: $minorChanges minor changes and $patches patches.";
             echo "\nSuggested version number: ";
             if ($minorChanges>0) {
                 $version = $version->inc("minor");
