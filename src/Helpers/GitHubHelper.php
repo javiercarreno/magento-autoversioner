@@ -17,19 +17,19 @@ class GitHubHelper
      * @var string
      */
     private $repository;
-
     /**
-     * @var Credentials
+     * @var Client
      */
-    private $config;
+    private $client;
 
     /**
      * @param GitHubRepository $gitHubRepository
-     *
+     * @param GitHubCredentials $credentials
+     * @param Client $githubClient
      */
-    public function __construct(GitHubRepository $gitHubRepository, GitHubCredentials $credentials)
+    public function __construct(GitHubRepository $gitHubRepository, GitHubCredentials $credentials, Client $githubClient)
     {
-        $this->client = new Client();
+        $this->client = $githubClient;
         $this->client->authenticate($credentials->getToken(), null, Client::AUTH_HTTP_TOKEN);
         $this->userName = $gitHubRepository->getUserName();
         $this->repository = $gitHubRepository->getRepository();

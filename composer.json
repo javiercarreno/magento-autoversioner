@@ -5,7 +5,8 @@
         "knplabs/github-api": "^2.5",
         "php-http/guzzle6-adapter": "^1.1",
         "composer/semver": "^1.4",
-        "vierbergenlars/php-semver": "^3.0"
+        "vierbergenlars/php-semver": "^3.0",
+        "mikey179/vfsStream": "^1.6"
     },
     "autoload": {
         "psr-4": {

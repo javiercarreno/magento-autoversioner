@@ -3,8 +3,6 @@
 
 namespace Autoversioner\Config;
 
-use Symfony\Component\Yaml\Yaml;
-
 class Expressions
 {
 

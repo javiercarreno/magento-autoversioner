@@ -41,7 +41,8 @@ class Application
         $credentials = new Credentials(new YamlParser('credentials.yml'));
         $this->gitHubHelper = new GitHubHelper(
             new GitHubRepository($gitHubRepository),
-            $credentials->getGitHubCredentials()
+            $credentials->getGitHubCredentials(),
+            new Client()
         );
         $this->jiraHelper = new JiraHelper(
             $credentials->getJiraCredentials(),
@@ -66,20 +67,24 @@ class Application
      */
     private function getPullRequestsByLastTag($lastTag)
     {
-        if ($lastTag) {
-            $dateLastTag = '';
-            if ($lastTag['object']['type']=='commit') {
-                $tagCommit = $this->gitHubHelper->getCommit($lastTag['object']['sha']);
-                $dateLastTag = $tagCommit['commit']['author']['date'];
-            } elseif ($lastTag['object']['type']=='tag') {
-                $tag = $this->gitHubHelper->getTag($lastTag['object']['sha']);
-                $dateLastTag = $tag['tagger']['date'];
+        try {
+            if ($lastTag) {
+                $dateLastTag = '';
+                if ($lastTag['object']['type']=='commit') {
+                    $tagCommit = $this->gitHubHelper->getCommit($lastTag['object']['sha']);
+                    $dateLastTag = $tagCommit['commit']['author']['date'];
+                } elseif ($lastTag['object']['type']=='tag') {
+                    $tag = $this->gitHubHelper->getTag($lastTag['object']['sha']);
+                    $dateLastTag = $tag['tagger']['date'];
+                }
+                $pullRequests = $this->gitHubHelper->getPullRequests($dateLastTag, $lastTag['object']['sha']);
+            } else {
+                $pullRequests = $this->gitHubHelper->getPullRequests('', '');
             }
-            $pullRequests = $this->gitHubHelper->getPullRequests($dateLastTag, $lastTag['object']['sha']);
-        } else {
-            $pullRequests = $this->gitHubHelper->getPullRequests('', '');
+            return $pullRequests;
+        } catch (\Exception $ex) {
+            return [];
         }
-        return $pullRequests;
     }
 
     private function doVersionCalculation()
