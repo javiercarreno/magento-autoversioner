@@ -64,13 +64,13 @@ class VersionCalculator
         $patches=0;
         foreach ($this->pullRequests as $pullRequest) {
             echo "\n";
-            echo sprintf('Pull Request \'%s\'. Date of Pull Request: %s', $pullRequest['title'], $pullRequest['merged_at']);
+            echo sprintf("Pull Request \e[1m'%s'\e[0m", $pullRequest['title']);
             $issue = $this->jiraHelper->getJiraIssue($pullRequest['title']);
             if ($issue!==false) {
                 $jiraIssueType = $this->jiraHelper->getIssueType($issue);
                 switch ($jiraIssueType) {
-                    case JiraHelper::ISSUE_BUG: $patches++; echo "\n\e[32mJira Bug: Patch\e[39m";break;
-                    case JiraHelper::ISSUE_STORY: $minorChanges++;echo "\n\e[32mJira Story: Minor changes\e[39m";break;
+                    case JiraHelper::ISSUE_BUG: $patches++; echo "\n\e[32mJira Bug - Hotfixes or patches\e[39m";break;
+                    case JiraHelper::ISSUE_STORY: $minorChanges++;echo "\n\e[32mJira Story - Feature changes\e[39m";break;
                     case JiraHelper::ISSUE_OTHER: $patches++;echo "\n\e[33mJira issue is not bug or story.\e[39m";break;
                     case JiraHelper::ISSUE_NOT_EXIST: echo "\n\e[91mJira exception or issue does not exist.\e[39m";break;
                 }
@@ -78,10 +78,10 @@ class VersionCalculator
                 $type = $this->processTitleByConfig($pullRequest['title']);
                 if ($type!="") {
                     if ($type==self::DEFAULT_MINOR) {
-                        echo "\n\e[32mMinor change (configured)\e[39m";
+                        echo "\n\e[33mNot Jira issue, Feature changes (configured)\e[39m";
                         $minorChanges++;
                     } else {
-                        echo "\n\e[32mPatch change (configured)\e[39m";
+                        echo "\n\e[33mNot Jira issue, Patch change (configured)\e[39m";
                         $patches++;
                     }
                 } else {

@@ -96,7 +96,7 @@ class Application
         } else {
             echo "Not tag found\n";
         }
-
+        echo "Fetching pull requests...\n";
         $pullRequests = $this->getPullRequestsByLastTag($lastTag);
 
         if (count($pullRequests) > 0) {

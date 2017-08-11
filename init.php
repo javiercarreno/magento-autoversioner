@@ -4,6 +4,7 @@ require __DIR__.'/vendor/autoload.php';
 use Autoversioner\Core\Application;
 
 system('clear');
+echo "\e[1mWelcome to Autoversioner. Please take a \360\237\215\272  and wait while I analize the repository for you...\e[0m\n";
 $gitRepo = "";
 if (isset($argv[2])) {
     if (strpos($argv[2], '-')!=0) {
